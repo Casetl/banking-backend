@@ -87,3 +87,32 @@ def test_get_profile():
 
     assert response.status_code == 200
     assert "full_name" in response.data
+    
+@pytest.mark.django_db
+def test_update_profile():
+    client = APIClient()
+
+    user = User.objects.create_user(
+        email="test@example.com",
+        username="testuser",
+        password="12345678"
+    )
+
+    login = client.post("/api/v1/auth/login/", {
+        "email": "test@example.com",
+        "password": "12345678"
+    })
+
+    token = login.data["access"]
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+
+    data = {
+        "full_name": "Juan Perez",
+        "phone": "123456789",
+        "address": "Test address"
+    }
+
+    response = client.put("/api/v1/auth/me/profile/", data)
+
+    assert response.status_code == 200
+    assert response.data["full_name"] == "Juan Perez"
